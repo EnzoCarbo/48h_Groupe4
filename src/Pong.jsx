@@ -4,18 +4,26 @@ const PongGame = () => {
     // State variables
     const [scorePlayer, setScorePlayer] = useState(0);
     const [scoreBot, setScoreBot] = useState(0);
+    const [playerWins, setPlayerWins] = useState(0);
+    const [botWins, setBotWins] = useState(0);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameEnded, setGameEnded] = useState(false);
     const [restartVisible, setRestartVisible] = useState(true);
+    const [targetScore, setTargetScore] = useState(5);
+    const [timeLimit, setTimeLimit] = useState(60);
+    const [timeRemaining, setTimeRemaining] = useState(60);
+    const [showPopup, setShowPopup] = useState(false);
+    const [botDifficulty, setBotDifficulty] = useState(50);
 
-    // Refs for DOM elements
+    // Refs pour les éléments DOM
     const leftPaddleRef = useRef(null);
     const rightPaddleRef = useRef(null);
     const ballRef = useRef(null);
     const gameAreaRef = useRef(null);
 
-    // Game variables
+    // Variables de jeu
     const gameIntervalRef = useRef(null);
+    const timerIntervalRef = useRef(null);
     const ballSpeedInitial = 4;
     const ballSpeedRef = useRef(ballSpeedInitial);
     const ballPosXRef = useRef(290);
@@ -26,26 +34,63 @@ const PongGame = () => {
     const paddleSpeed = 28;
     const leftPaddlePosYRef = useRef(168);
     const rightPaddlePosYRef = useRef(168);
+    const botMistakeRef = useRef(0);
 
-    // Function to start the game
+    // Fonction pour démarrer le jeu
     const startGame = () => {
         resetBall();
         resetPaddles();
         setRestartVisible(false);
         setGameStarted(true);
         setGameEnded(false);
+        setScorePlayer(0);
+        setScoreBot(0);
+        setTimeRemaining(timeLimit);
+        setShowPopup(false);
+        botMistakeRef.current = 0;
 
         gameIntervalRef.current = setInterval(updateGame, 20);
+
+        timerIntervalRef.current = setInterval(() => {
+            setTimeRemaining(prev => {
+                if (prev <= 1) {
+                    endGameByTimeout();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
     };
 
-    // Function to reset the game
+    // Fonction pour terminer le jeu par timeout
+    const endGameByTimeout = () => {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+
+        if (scorePlayer > scoreBot) {
+            setPlayerWins(prev => prev + 1);
+            setShowPopup(true);
+            alert(`Temps écoulé ! Vous avez gagné ! Score final: ${scorePlayer}-${scoreBot}`);
+        } else if (scoreBot > scorePlayer) {
+            setBotWins(prev => prev + 1);
+            alert(`Temps écoulé ! Vous avez perdu ! Score final: ${scorePlayer}-${scoreBot}`);
+        } else {
+            alert(`Temps écoulé ! Match nul ! Score final: ${scorePlayer}-${scoreBot}`);
+        }
+
+        setGameEnded(true);
+        stopGame();
+        setRestartVisible(true);
+    };
+
+    // Fonction pour réinitialiser le jeu
     const resetGame = () => {
         resetBall();
         resetPaddles();
         startGame();
     };
 
-    // Function to reset ball position
+    // Fonction pour réinitialiser la position de la balle
     const resetBall = () => {
         ballPosXRef.current = 290;
         ballPosYRef.current = 190;
@@ -59,7 +104,7 @@ const PongGame = () => {
         }
     };
 
-    // Function to reset paddle positions
+    // Fonction pour réinitialiser les positions des raquettes
     const resetPaddles = () => {
         leftPaddlePosYRef.current = 168;
         rightPaddlePosYRef.current = 168;
@@ -73,7 +118,7 @@ const PongGame = () => {
         }
     };
 
-    // Function to update game state
+    // Fonction pour mettre à jour l'état du jeu
     const updateGame = () => {
         moveBall();
         movePaddles();
@@ -82,7 +127,7 @@ const PongGame = () => {
         updateBotPaddle();
     };
 
-    // Function to move the ball
+    // Fonction pour déplacer la balle
     const moveBall = () => {
         ballPosXRef.current += ballSpeedRef.current * ballDirXRef.current;
         ballPosYRef.current += ballSpeedRef.current * ballDirYRef.current;
@@ -93,7 +138,7 @@ const PongGame = () => {
         }
     };
 
-    // Function to move paddles
+    // Fonction pour déplacer les raquettes
     const movePaddles = () => {
         if (leftPaddleRef.current) {
             leftPaddleRef.current.style.top = leftPaddlePosYRef.current + "px";
@@ -104,9 +149,9 @@ const PongGame = () => {
         }
     };
 
-    // Function to check collisions
+    // Fonction pour vérifier les collisions
     const checkCollision = () => {
-        // Collision with paddles
+        // Collision avec les raquettes
         if (
             ballPosXRef.current <= 30 &&
             ballPosYRef.current + 10 >= leftPaddlePosYRef.current &&
@@ -123,70 +168,120 @@ const PongGame = () => {
             increaseBallSpeed();
         }
 
-        // Collision with top and bottom walls
+        // Collision avec les murs supérieur et inférieur
         if (ballPosYRef.current <= 0 || ballPosYRef.current >= 380) {
             ballDirYRef.current *= -1;
         }
     };
 
-    // Function to increase ball speed
+    // Fonction pour augmenter la vitesse de la balle
     const increaseBallSpeed = () => {
         if (ballSpeedRef.current < 12) {
             ballSpeedRef.current += 0.25;
         }
     };
 
-    // Function to check round end
+    // Fonction pour vérifier la fin d'un round
     const checkRoundEnd = () => {
         if (ballPosXRef.current <= 0) {
-            setScoreBot(prev => prev + 1);
-            alert("Le bot a marqué un point !");
-            stopGame();
-            resetBall();
-            setRestartVisible(true);
+            const newBotScore = scoreBot + 1;
+            setScoreBot(newBotScore);
+
+            if (newBotScore >= targetScore) {
+                alert(`Vous avez perdu la partie ! Score final: ${scorePlayer}-${newBotScore}`);
+                setBotWins(prev => prev + 1);
+                setGameEnded(true);
+                stopGame();
+                setRestartVisible(true);
+            } else {
+                alert("Le bot a marqué un point !");
+                stopGame();
+                resetBall();
+                setRestartVisible(true);
+            }
         } else if (ballPosXRef.current >= 585) {
-            setScorePlayer(prev => prev + 1);
-            alert("Vous avez marqué un point !");
-            stopGame();
-            resetBall();
-            setRestartVisible(true);
+            const newPlayerScore = scorePlayer + 1;
+            setScorePlayer(newPlayerScore);
+
+            if (newPlayerScore >= targetScore) {
+                alert(`Vous avez gagné la partie ! Score final: ${newPlayerScore}-${scoreBot}`);
+                setPlayerWins(prev => prev + 1);
+                setShowPopup(true);
+                setGameEnded(true);
+                stopGame();
+                setRestartVisible(true);
+            } else {
+                alert("Vous avez marqué un point !");
+                stopGame();
+                resetBall();
+                setRestartVisible(true);
+            }
         }
     };
 
-    // Function to update bot paddle
+    // Fonction pour mettre à jour la raquette du bot (avec erreurs délibérées)
     const updateBotPaddle = () => {
-        const botPaddleSpeed = 14;
+        // Calculer la vitesse du bot en fonction de la difficulté
+        const botPaddleSpeed = 14 * (botDifficulty / 100);
 
-        if (rightPaddlePosYRef.current + 32 > ballPosYRef.current + 35 && rightPaddlePosYRef.current > 0) {
-            rightPaddlePosYRef.current -= botPaddleSpeed;
-        } else if (rightPaddlePosYRef.current + 32 < ballPosYRef.current - 35 && rightPaddlePosYRef.current + 64 < 336) {
-            rightPaddlePosYRef.current += botPaddleSpeed;
+        // Augmenter le compteur d'erreurs
+        botMistakeRef.current += 1;
+
+        // Le bot fait des erreurs à intervalles réguliers (selon la difficulté)
+        const errorThreshold = 101 - botDifficulty;
+        const makeMistake = (botMistakeRef.current % errorThreshold < 20) || Math.random() < (1 - botDifficulty / 100) * 0.3;
+
+        if (makeMistake) {
+            // Le bot fait une erreur - mouvement aléatoire
+            if (Math.random() < 0.5 && rightPaddlePosYRef.current > 0) {
+                rightPaddlePosYRef.current -= botPaddleSpeed;
+            } else if (rightPaddlePosYRef.current + 64 < 336) {
+                rightPaddlePosYRef.current += botPaddleSpeed;
+            }
+        } else {
+            // Le bot suit la balle normalement
+            const targetY = ballPosYRef.current - 32;
+            const reactionDelay = Math.random() * (100 - botDifficulty) / 100;
+            const currentY = rightPaddlePosYRef.current;
+
+            if (Math.abs(currentY - targetY) > 10) {
+                if (currentY > targetY + 20 && rightPaddlePosYRef.current > 0) {
+                    rightPaddlePosYRef.current -= botPaddleSpeed * (1 - reactionDelay);
+                } else if (currentY < targetY - 20 && rightPaddlePosYRef.current + 64 < 336) {
+                    rightPaddlePosYRef.current += botPaddleSpeed * (1 - reactionDelay);
+                }
+            }
         }
     };
 
-    // Function to stop the game
+    // Fonction pour arrêter le jeu
     const stopGame = () => {
         if (gameIntervalRef.current) {
             clearInterval(gameIntervalRef.current);
             gameIntervalRef.current = null;
         }
+
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+        }
     };
 
-    // Function to move paddle up
+    // Fonction pour déplacer la raquette vers le haut
     const movePaddleUp = () => {
         if (leftPaddlePosYRef.current > 0) {
             leftPaddlePosYRef.current -= paddleSpeed;
         }
     };
 
-    // Function to move paddle down
+    // Fonction pour déplacer la raquette vers le bas
     const movePaddleDown = () => {
         if (leftPaddlePosYRef.current < 336) {
             leftPaddlePosYRef.current += paddleSpeed;
         }
     };
 
-    // Handle keyboard events
+    // Gestion des événements clavier
     useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === "ArrowDown") {
@@ -201,7 +296,6 @@ const PongGame = () => {
         const handleKeyUp = (event) => {
             if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
-                // Stop paddle movement (not needed in this implementation)
             }
         };
 
@@ -215,95 +309,450 @@ const PongGame = () => {
         };
     }, []);
 
-    // Styles
+    // Fonction pour gérer le changement de score cible
+    const handleTargetScoreChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        if (!isNaN(value) && value > 0) {
+            setTargetScore(value);
+        }
+    };
+
+    // Fonction pour gérer le changement de temps limite
+    const handleTimeLimitChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        if (!isNaN(value) && value > 0) {
+            setTimeLimit(value);
+            setTimeRemaining(value);
+        }
+    };
+
+    // Fonction pour gérer le changement de difficulté du bot
+    const handleBotDifficultyChange = (e) => {
+        const value = parseInt(e.target.value, 10);
+        if (!isNaN(value) && value >= 0 && value <= 100) {
+            setBotDifficulty(value);
+        }
+    };
+
+    // Fonction pour fermer le popup
+    const closePopup = () => {
+        setShowPopup(false);
+    };
+
+    // Formatage du temps restant en MM:SS
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Styles améliorés
     const styles = {
         container: {
             width: '37.5rem',
-            margin: '0 auto',
+            margin: '2rem auto',
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            fontFamily: '"Roboto", "Helvetica Neue", sans-serif',
+            color: '#333',
+            background: 'linear-gradient(145deg, #f6f6f6, #ffffff)',
+            padding: '2rem',
+            borderRadius: '1rem',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
         },
         gameArea: {
-            top: 0,
-            left: 0,
             width: '100%',
             height: '25rem',
-            border: '1.5px solid #f5f5f5',
-            backgroundColor: '#101010',
+            border: 'none',
+            backgroundColor: '#1a1a2e',
             position: 'relative',
+            borderRadius: '0.5rem',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.5)',
+            margin: '1.5rem 0',
         },
         paddleLeft: {
             position: 'absolute',
-            width: '1.25rem',
+            width: '1rem',
             height: '4rem',
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#4ee1a0',
             transition: 'all 75ms linear',
-            borderRadius: '0.75rem',
+            borderRadius: '0.5rem',
             top: '168px',
             left: '10px',
+            boxShadow: '0 0 15px #4ee1a0',
         },
         paddleRight: {
             position: 'absolute',
-            width: '1.25rem',
+            width: '1rem',
             height: '4rem',
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#ff6b6b',
             transition: 'all 75ms linear',
-            borderRadius: '0.75rem',
+            borderRadius: '0.5rem',
             top: '168px',
             right: '10px',
+            boxShadow: '0 0 15px #ff6b6b',
         },
         ball: {
             position: 'absolute',
-            width: '1.25rem',
-            height: '1.25rem',
-            backgroundColor: '#fdd33c',
+            width: '1rem',
+            height: '1rem',
+            backgroundColor: '#ffd369',
             borderRadius: '50%',
             top: '190px',
             left: '290px',
+            boxShadow: '0 0 20px rgba(255, 211, 105, 0.7)',
         },
         scoreboard: {
             textAlign: 'center',
-            fontSize: '1.5rem',
-            marginTop: '1.25rem',
+            fontSize: '2.5rem',
+            marginTop: '1rem',
+            fontWeight: 'bold',
+            color: '#333',
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '1.5rem',
+        },
+        scoreValue: {
+            display: 'inline-block',
+            width: '3rem',
+            height: '3.5rem',
+            backgroundColor: '#1a1a2e',
+            color: '#fff',
+            padding: '0.5rem',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+        scoreColon: {
+            fontSize: '2rem',
+            fontWeight: 'bold',
         },
         restartButton: {
-            padding: '0.625rem 1rem',
-            fontSize: '1rem',
-            backgroundColor: '#333',
+            padding: '0.75rem 2rem',
+            fontSize: '1.1rem',
+            backgroundColor: '#1a1a2e',
             color: '#fff',
             border: 'none',
             cursor: 'pointer',
-            position: 'absolute',
+            borderRadius: '2rem',
+            fontWeight: 'bold',
             display: restartVisible ? 'block' : 'none',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10,
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            transition: 'all 0.3s ease',
         },
-        mediaQuery: {
-            '@media screen and (max-width: 992px)': {
-                container: {
-                    display: 'none',
-                },
-            },
+        statsContainer: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%',
+            marginTop: '1.5rem',
+            padding: '1rem 1.5rem',
+            backgroundColor: 'rgba(240, 240, 240, 0.5)',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
         },
+        statBox: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#fff',
+            borderRadius: '0.5rem',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        },
+        statLabel: {
+            fontSize: '0.9rem',
+            color: '#666',
+            marginBottom: '0.25rem',
+        },
+        statValue: {
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: '#1a1a2e',
+        },
+        settings: {
+            marginTop: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            width: '100%',
+            backgroundColor: 'rgba(240, 240, 240, 0.5)',
+            borderRadius: '0.5rem',
+            padding: '1rem',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+        },
+        settingGroup: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+        },
+        settingLabel: {
+            fontSize: '0.9rem',
+            color: '#555',
+            fontWeight: '500',
+        },
+        settingInput: {
+            width: '3.5rem',
+            padding: '0.4rem',
+            fontSize: '0.9rem',
+            textAlign: 'center',
+            border: '1px solid #ddd',
+            borderRadius: '0.25rem',
+            backgroundColor: '#fff',
+        },
+        difficultyRange: {
+            width: '8rem',
+            accentColor: '#1a1a2e',
+        },
+        difficultyValue: {
+            backgroundColor: '#1a1a2e',
+            color: '#fff',
+            padding: '0.2rem 0.5rem',
+            borderRadius: '1rem',
+            fontSize: '0.8rem',
+            fontWeight: 'bold',
+            minWidth: '2.5rem',
+            textAlign: 'center',
+        },
+        timer: {
+            fontSize: '1.25rem',
+            marginTop: '1rem',
+            color: timeRemaining < 10 ? '#ff6b6b' : '#1a1a2e',
+            fontWeight: timeRemaining < 10 ? 'bold' : '500',
+            padding: '0.5rem 1.5rem',
+            backgroundColor: '#fff',
+            borderRadius: '2rem',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+        },
+        timerIcon: {
+            display: 'inline-block',
+            width: '0.75rem',
+            height: '0.75rem',
+            backgroundColor: timeRemaining < 10 ? '#ff6b6b' : '#1a1a2e',
+            borderRadius: '50%',
+            animation: timeRemaining < 10 ? 'pulsate 1s infinite' : 'none',
+        },
+        popup: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            display: showPopup ? 'flex' : 'none',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(5px)',
+        },
+        popupContent: {
+            backgroundColor: '#fff',
+            padding: '3rem',
+            borderRadius: '1rem',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 15px 50px rgba(0, 0, 0, 0.3)',
+            transform: 'scale(1)',
+            animation: 'popup-appear 0.3s ease-out',
+        },
+        popupLetter: {
+            fontSize: '8rem',
+            fontWeight: 'bold',
+            color: '#ff6b6b',
+            marginBottom: '1rem',
+            textShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
+        },
+        popupMessage: {
+            fontSize: '1.5rem',
+            color: '#333',
+            marginBottom: '1.5rem',
+            fontWeight: '500',
+        },
+        popupClose: {
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            fontSize: '1.5rem',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#555',
+            transition: 'color 0.2s ease',
+        },
+        '@keyframes pulsate': {
+            '0%': { opacity: 0.6 },
+            '50%': { opacity: 1 },
+            '100%': { opacity: 0.6 }
+        },
+        '@keyframes popup-appear': {
+            '0%': { opacity: 0, transform: 'scale(0.8)' },
+            '100%': { opacity: 1, transform: 'scale(1)' }
+        },
+        centerLine: {
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            height: '100%',
+            width: '2px',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-around',
+        },
+        centerDot: {
+            width: '6px',
+            height: '6px',
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            borderRadius: '50%',
+            marginLeft: '-2px',
+        },
+        controlsHint: {
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            fontSize: '0.8rem',
+            color: 'rgba(255, 255, 255, 0.6)',
+        },
+        playerLabel: {
+            position: 'absolute',
+            bottom: '10px',
+            left: '10px',
+            color: '#4ee1a0',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+        },
+        botLabel: {
+            position: 'absolute',
+            bottom: '10px',
+            right: '10px',
+            color: '#ff6b6b',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+        }
     };
+
+    // Création des points de la ligne centrale
+    const centerDots = [];
+    for (let i = 0; i < 15; i++) {
+        centerDots.push(<div key={i} style={styles.centerDot}></div>);
+    }
 
     return (
         <div style={styles.container} className="pong-game-container">
+            <h1 style={{ fontSize: '2rem', margin: '0 0 1.5rem', color: '#1a1a2e', textAlign: 'center' }}>
+                Pong Challenge
+            </h1>
+
+            <div style={styles.settings}>
+                <div style={styles.settingGroup}>
+                    <label htmlFor="target-score" style={styles.settingLabel}>Score à atteindre:</label>
+                    <input
+                        id="target-score"
+                        type="number"
+                        min="1"
+                        value={targetScore}
+                        onChange={handleTargetScoreChange}
+                        style={styles.settingInput}
+                    />
+                </div>
+
+                <div style={styles.settingGroup}>
+                    <label htmlFor="time-limit" style={styles.settingLabel}>Temps (sec):</label>
+                    <input
+                        id="time-limit"
+                        type="number"
+                        min="10"
+                        value={timeLimit}
+                        onChange={handleTimeLimitChange}
+                        style={styles.settingInput}
+                    />
+                </div>
+
+                <div style={styles.settingGroup}>
+                    <label htmlFor="bot-difficulty" style={styles.settingLabel}>Difficulté:</label>
+                    <input
+                        id="bot-difficulty"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={botDifficulty}
+                        onChange={handleBotDifficultyChange}
+                        style={styles.difficultyRange}
+                    />
+                    <span style={styles.difficultyValue}>{botDifficulty}%</span>
+                </div>
+            </div>
+
+            <div style={styles.timer}>
+                <div style={styles.timerIcon}></div>
+                {formatTime(timeRemaining)}
+            </div>
+
             <div style={styles.gameArea} ref={gameAreaRef} className="pong-game-area">
+                <div style={styles.controlsHint}>Utilisez ↑↓ pour déplacer</div>
+                <div style={styles.centerLine}>
+                    {centerDots}
+                </div>
+                <div style={styles.playerLabel}>JOUEUR</div>
+                <div style={styles.botLabel}>BOT</div>
                 <div style={styles.paddleLeft} ref={leftPaddleRef} className="pong-paddle-left"></div>
                 <div style={styles.paddleRight} ref={rightPaddleRef} className="pong-paddle-right"></div>
                 <div style={styles.ball} ref={ballRef} className="pong-ball"></div>
+                <button
+                    style={styles.restartButton}
+                    onClick={!gameStarted || gameEnded ? startGame : resetGame}
+                    className="pong-restart-button"
+                >
+                    {!gameStarted ? 'Jouer' : 'Continuer'}
+                </button>
             </div>
-            <button
-                style={styles.restartButton}
-                onClick={!gameStarted || gameEnded ? startGame : resetGame}
-                className="pong-restart-button"
-            >
-                Jouer
-            </button>
+
             <div style={styles.scoreboard} className="pong-scoreboard">
-                <span id="pong-player-score">{scorePlayer}</span> : <span id="pong-bot-score">{scoreBot}</span>
+                <div style={{ ...styles.scoreValue, backgroundColor: '#4ee1a0', boxShadow: '0 0 10px rgba(78, 225, 160, 0.3)' }} id="pong-player-score">{scorePlayer}</div>
+                <span style={styles.scoreColon}>:</span>
+                <div style={{ ...styles.scoreValue, backgroundColor: '#ff6b6b', boxShadow: '0 0 10px rgba(255, 107, 107, 0.3)' }} id="pong-bot-score">{scoreBot}</div>
+            </div>
+
+            <div style={styles.statsContainer}>
+                <div style={styles.statBox}>
+                    <div style={styles.statLabel}>Victoires</div>
+                    <div style={styles.statValue} id="player-wins">{playerWins}</div>
+                </div>
+                <div style={styles.statBox}>
+                    <div style={styles.statLabel}>Défaites</div>
+                    <div style={styles.statValue} id="bot-wins">{botWins}</div>
+                </div>
+            </div>
+
+            {/* Popup avec la lettre R qui apparaît lorsque le joueur gagne */}
+            <div style={styles.popup} onClick={closePopup}>
+                <div style={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+                    <button style={styles.popupClose} onClick={closePopup}>×</button>
+                    <div style={styles.popupLetter}>R</div>
+                    <div style={styles.popupMessage}>Félicitations, vous avez gagné !</div>
+                </div>
             </div>
         </div>
     );
