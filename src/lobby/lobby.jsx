@@ -1,15 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "../style/lobby.css";
 
 export default function Lobby() {
   const [word, setWord] = useState("");
-  const [score, setScore] = useState(0);
+  const audioRef = useRef(null);
+  const [result, setResult] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(word);
-    // Add your logic to calculate the score here
-    setScore(word.length); // This is just a placeholder logic
+    if (word==="STARS"){
+        setResult(true);
+        playWinSound();
+    } else{
+        console.log("wrong");
+    }
+  };
+
+  const playWinSound = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(error => {
+        console.error("Error playing audio:", error);
+      });
+    }
+  };
+
+  const SoundEnd = () => {
+    setResult(false);
   };
 
   return (
@@ -17,7 +33,11 @@ export default function Lobby() {
       <div className="background">
         <img src={`${process.env.PUBLIC_URL}/img/bglobby.png`} alt="Background Lobby" />
       </div>
-
+      {result && (
+        <div className="result">
+            <img src="/img/win.gif" alt="victoire"/>
+        </div>
+      )}
       <section className="center">
         <p><strong>Consignes</strong></p>
         <p>
@@ -34,7 +54,6 @@ export default function Lobby() {
           />
           <button type="submit">Submit</button>
         </form>
-        <p>Score: {score}</p>
 
       <section className="card-container">
         {[...Array(5)].map((_, index) => (
@@ -44,6 +63,10 @@ export default function Lobby() {
         ))}
       </section>
     </section>
+    <audio ref={audioRef} src={`${process.env.PUBLIC_URL}/mp3/winsound.mp3`} onEnded={SoundEnd}>
+        Musique de victoire bloquer par le navigateur :/
+    </audio>
+
     </main>
   );
 }
