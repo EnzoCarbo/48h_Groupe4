@@ -18,7 +18,7 @@ const TicTacToe = () => {
 
   useEffect(() => {
     if (scores.player === 5) {
-      alert("Félicitations ! Vous avez atteint 5 victoires 🎉\nVoici votre récompense : S");
+      alert("Félicitations ! Vous avez atteint 5 victoires 🎉\nVoici votre lettre : S");
     }
   }, [scores.player]);
 
@@ -42,16 +42,25 @@ const TicTacToe = () => {
   };
 
   const handleBotMove = () => {
-    let availableMoves = [];
+    let bestScore = -Infinity;
+    let bestMove;
+
     board.forEach((row, i) => {
       row.forEach((cell, j) => {
-        if (cell === "") availableMoves.push([i, j]);
+        if (cell === "") {
+          let tempBoard = board.map(row => [...row]);
+          tempBoard[i][j] = "O";
+          let score = minimax(tempBoard, 0, false, -Infinity, Infinity);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { row: i, col: j };
+          }
+        }
       });
     });
 
-    if (availableMoves.length === 0) return;
-
-    const [row, col] = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    if (!bestMove) return;
+    const { row, col } = bestMove;
     const newBoard = board.map((r, i) => r.map((cell, j) => (i === row && j === col ? "O" : cell)));
     setBoard(newBoard);
 
@@ -65,6 +74,44 @@ const TicTacToe = () => {
       resetGame();
     } else {
       setPlayerTurn(true);
+    }
+  };
+
+  const minimax = (board, depth, isMax, alpha, beta) => {
+    if (checkWinner(board, "O")) return 10 - depth;
+    if (checkWinner(board, "X")) return depth - 10;
+    if (checkDraw(board)) return 0;
+
+    if (isMax) {
+      let bestScore = -Infinity;
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell === "") {
+            board[i][j] = "O";
+            let score = minimax(board, depth + 1, false, alpha, beta);
+            board[i][j] = "";
+            bestScore = Math.max(score, bestScore);
+            alpha = Math.max(alpha, bestScore);
+            if (beta <= alpha) return;
+          }
+        });
+      });
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell === "") {
+            board[i][j] = "X";
+            let score = minimax(board, depth + 1, true, alpha, beta);
+            board[i][j] = "";
+            bestScore = Math.min(score, bestScore);
+            beta = Math.min(beta, bestScore);
+            if (beta <= alpha) return;
+          }
+        });
+      });
+      return bestScore;
     }
   };
 
