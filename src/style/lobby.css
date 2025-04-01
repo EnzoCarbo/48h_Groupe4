@@ -29,6 +29,7 @@
   font-family: 'Press Start 2P', cursive;
   letter-spacing: 2px;
   z-index: 1;
+  margin-bottom: 1%;
 }
 
 form {
@@ -115,4 +116,9 @@ p {
   margin-top: 2%;
   border:2px white;
   justify-content: center;
+}
+
+/* Music */
+.margetop{
+  margin-top: 10%;
 }

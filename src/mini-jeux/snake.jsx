@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import "../style/snake.css";
 
 const TAILLE_CELLULE = 20;
 const TAILLE_CANVAS = 500;
@@ -16,13 +17,15 @@ const SnakeGame = () => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const boucleJeu = useRef(null);
-  const lettres = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  const lettres = 'A';
   const [lettre, setLettre] = useState('');
   const vitesseRef = useRef(200); // Vitesse initiale (en ms)
   const [pommesEmpoisonnees, setPommesEmpoisonnees] = useState([{ x: 15, y: 15 }]);
   const pommesEmpoisonneesRef = useRef([{ x: 15, y: 15 }]);
   const [pommeEmpoisonnee, setPommeEmpoisonnee] = useState({ x: 15, y: 15 });
   const pommeEmpoisonneeRef = useRef({ x: 15, y: 15 });
+  const [hasReached15, setHasReached15] = useState(false);
+  const [showLetter, setShowLetter] = useState(false);
 
   const genererPositionValide = (serpent, positions_existantes) => {
     let x, y;
@@ -119,9 +122,9 @@ const SnakeGame = () => {
             const newScore = prevScore + 1;
             miseAJourVitesse(newScore);
             
-            if (newScore === 15) {
-              const lettreAleatoire = lettres[Math.floor(Math.random() * lettres.length)];
-              setLettre(lettreAleatoire);
+            if (newScore >= 15 && !hasReached15) {
+              setLettre('A');
+              setHasReached15(true);
             }
             
             // Mettre à jour les pommes empoisonnées selon le nouveau score
@@ -199,7 +202,19 @@ const SnakeGame = () => {
     }
   };
 
+  const handleHiddenClick = () => {
+    setShowLetter(true);
+    setTimeout(() => setShowLetter(false), 2000); // Cache la lettre après 2 secondes
+  };
+
   const demarrerJeu = () => {
+    // Arrêter l'intervalle existant
+    if (boucleJeu.current) {
+      clearInterval(boucleJeu.current);
+      boucleJeu.current = null;
+    }
+
+    // Réinitialiser tous les états
     setCorps(0);
     setSerpent([{ x: 10, y: 10, isHead: true }]);
     setDirection("droite");
@@ -208,18 +223,21 @@ const SnakeGame = () => {
     nourritureRef.current = { x: 5, y: 5 };
     setScore(0);
     setLettre('');
+    setHasReached15(false);
     setGameOver(false);
     setPommesEmpoisonnees([{ x: 15, y: 15 }]);
     pommesEmpoisonneesRef.current = [{ x: 15, y: 15 }];
     setPommeEmpoisonnee({ x: 15, y: 15 });
     pommeEmpoisonneeRef.current = { x: 15, y: 15 };
+    setShowLetter(false);
 
     // Réinitialiser la vitesse
     vitesseRef.current = 200;
-    if (boucleJeu.current) {
-      clearInterval(boucleJeu.current);
-    }
-    boucleJeu.current = setInterval(miseAJourJeu, vitesseRef.current);
+
+    // Démarrer un nouvel intervalle après un court délai
+    setTimeout(() => {
+      boucleJeu.current = setInterval(miseAJourJeu, vitesseRef.current);
+    }, 100);
   };
 
   useEffect(() => {
@@ -274,38 +292,83 @@ const SnakeGame = () => {
   }, []);
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-        <p style={{ color: "black", width: "100px", backgroundColor: "white", borderRadius: "5px" }}>
-          {score < 10 ? `Score: ${score}` : `Lettre: ${lettre}`}
-        </p>
-      <canvas
-        ref={canvasRef}
-        width={TAILLE_CANVAS}
-        height={TAILLE_CANVAS}
-        style={{
-          border: "2px solid #333",
-          backgroundColor: "#000"
-        }}
-      />
-      <div style={{ marginTop: "20px" }}>
+    <div className="snake-game-container">
+      <div className="scores-container">
+        <p className="score">Score: {score}</p>
+        <div className="high-score-message">
+          Beat your high score !<span className="high-score">15</span>
+        </div>
+      </div>
 
-        {gameOver && (
-          <p style={{ color: "red" }}>Game Over!</p>
-        )}
-        <button
-          onClick={demarrerJeu}
-          style={{
-            padding: "10px 20px",
-            fontSize: "16px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer"
-          }}
-        >
-          {gameOver ? "Recommencer" : "Démarrer"}
-      </button>
+      <div className="hidden-button" onClick={handleHiddenClick} />
+
+      {showLetter && (
+        <div className="letter-popup">
+          Lettre: A
+        </div>
+      )}
+
+      <div className="game-section">
+        <div className="game-container">
+          <canvas
+            ref={canvasRef}
+            width={TAILLE_CANVAS}
+            height={TAILLE_CANVAS}
+            className="game-canvas"
+          />
+          {(!boucleJeu.current || gameOver) && (
+            <div className="game-overlay">
+              {gameOver ? (
+                <>
+                  <p className="game-over">Game Over!</p>
+                  {hasReached15 && (
+                    <p className="game-letter">Lettre: {lettre}</p>
+                  )}
+                  <button className="game-button" onClick={demarrerJeu}>
+                    Recommencer
+                  </button>
+                </>
+              ) : (
+                <button className="game-button" onClick={demarrerJeu}>
+                  Démarrer
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="legends-wrapper">
+          {/* Légende des couleurs */}
+          <div className="legend-container">
+            <div className="legend-item">
+              <div className="color-box red"></div>
+              <span className="legend-text">+1</span>
+            </div>
+            <div className="legend-item">
+              <div className="color-box blue"></div>
+              <span className="legend-text">-5</span>
+            </div>
+            <div className="legend-item">
+              <div className="color-box green"></div>
+              <span className="legend-text">Player</span>
+            </div>
+          </div>
+
+          {/* Légende des contrôles */}
+          <div className="legend-container">
+            {[
+              { key: '↑', text: 'Haut' },
+              { key: '↓', text: 'Bas' },
+              { key: '←', text: 'Gauche' },
+              { key: '→', text: 'Droite' }
+            ].map((control, index) => (
+              <div key={index} className="legend-item">
+                <span className="control-key">{control.key}</span>
+                <span className="control-text">{control.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
