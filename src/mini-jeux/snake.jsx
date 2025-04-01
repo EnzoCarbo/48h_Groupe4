@@ -293,7 +293,12 @@ const SnakeGame = () => {
 
   return (
     <div className="snake-game-container">
-      <p className="score">Score: {score}</p>
+      <div className="scores-container">
+        <p className="score">Score: {score}</p>
+        <div className="high-score-message">
+          Beat your high score !<span className="high-score">15</span>
+        </div>
+      </div>
 
       <div className="hidden-button" onClick={handleHiddenClick} />
 
@@ -330,9 +335,6 @@ const SnakeGame = () => {
               )}
             </div>
           )}
-          <div className="high-score-message">
-            Beat your high score !<span className="high-score">15</span>
-          </div>
         </div>
 
         <div className="legends-wrapper">
