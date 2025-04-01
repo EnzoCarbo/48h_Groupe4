@@ -67,7 +67,7 @@ Cette organisation permet une séparation claire entre les jeux, les styles, et 
  
  
 ## Choix technologiques
-- React Vite : Typescript, permet d'avoir un Front-End typé, pour une meilleur organisation et qualité/fiabilité du code et de l'utilisation des variables
+- React Vite : En prévision d'une navigation et de différentes utilisations de React comme les composants réutilisables.
  
  
  
