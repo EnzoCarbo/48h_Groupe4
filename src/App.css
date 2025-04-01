@@ -1,42 +1,40 @@
-body {
-  background-image: url('../public/Backgtound.png');
+@media screen and (max-width: 992px) {
+  #tictactoeContainer {
+    display: none !important;
+  }
 }
 
-.App {
+#tictactoeContainer {
+  width: 28.125rem;
+  margin: 0 auto;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 1.25rem auto;
+  background-color: #101010;
+}
+
+td {
+  width: 9.375rem;
+  height: 9.375rem;
   text-align: center;
+  font-size: 4.5rem;
+  border: 1px solid #333;
+  cursor: pointer;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+#tictactoe-scoreboard {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1rem;
 }
 
-.App-link {
-  color: #61dafb;
+#tictactoe-scoreboard span {
+  margin-right: 0.625rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.player-symbol, .bot-symbol {
+  color: #fdd33c;
 }
