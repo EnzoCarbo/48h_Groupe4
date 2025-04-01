@@ -12,6 +12,7 @@ export default function Lobby() {
   const [word, setWord] = useState("");
   const [result, setResult] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.2); // Volume par défaut à 50%
   const audioRef = useRef(null);
   const audioRefBack = useRef(null);
   const [jeu, setJeu] = useState("");
@@ -69,6 +70,8 @@ export default function Lobby() {
 
   useEffect(() => {
     const audio = audioRefBack.current;
+    audio.volume = volume; // Définir le volume initial
+
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
@@ -79,7 +82,7 @@ export default function Lobby() {
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
     };
-  }, []);
+  }, [volume]);
 
   return (
     <div className="background-container">
@@ -107,7 +110,7 @@ export default function Lobby() {
 
           {/* Form & menu */}
           <p><strong>Consignes</strong></p>
-          <p>5 Mini-jeux, 5 lettres, réussissez les et trouver toutes les lettres pour former le mot !</p>
+          <p>5 Mini-jeux, 5 lettres, réussissez les et trouvez toutes les lettres pour former le mot !</p>
           <form onSubmit={handleSubmit}>
             <input
               type="password"

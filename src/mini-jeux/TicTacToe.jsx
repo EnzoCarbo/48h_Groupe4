@@ -9,7 +9,6 @@ const TicTacToe = () => {
   ]);
   const [playerTurn, setPlayerTurn] = useState(true);
   const [scores, setScores] = useState({ player: 0, bot: 0, draw: 0 });
-  const [showS, setShowS] = useState(false); // État pour afficher la lettre "S"
 
   useEffect(() => {
     if (!playerTurn) {
@@ -19,12 +18,12 @@ const TicTacToe = () => {
 
   useEffect(() => {
     if (scores.player === 5) {
-      setShowS(true); // Afficher "S" si le joueur atteint 5 victoires
+      alert("Félicitations ! Vous avez atteint 5 victoires 🎉\nVoici votre lettre : S");
     }
   }, [scores.player]);
 
   const handlePlayerMove = (row, col) => {
-    if (board[row][col] !== "" || !playerTurn || showS) return;
+    if (board[row][col] !== "" || !playerTurn) return;
 
     const newBoard = board.map((r, i) => r.map((cell, j) => (i === row && j === col ? "X" : cell)));
     setBoard(newBoard);
@@ -43,18 +42,25 @@ const TicTacToe = () => {
   };
 
   const handleBotMove = () => {
-    if (showS) return; // Bloquer le jeu si "S" est affiché
+    let bestScore = -Infinity;
+    let bestMove;
 
-    let availableMoves = [];
     board.forEach((row, i) => {
       row.forEach((cell, j) => {
-        if (cell === "") availableMoves.push([i, j]);
+        if (cell === "") {
+          let tempBoard = board.map(row => [...row]);
+          tempBoard[i][j] = "O";
+          let score = minimax(tempBoard, 0, false, -Infinity, Infinity);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { row: i, col: j };
+          }
+        }
       });
     });
 
-    if (availableMoves.length === 0) return;
-
-    const [row, col] = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    if (!bestMove) return;
+    const { row, col } = bestMove;
     const newBoard = board.map((r, i) => r.map((cell, j) => (i === row && j === col ? "O" : cell)));
     setBoard(newBoard);
 
@@ -68,6 +74,44 @@ const TicTacToe = () => {
       resetGame();
     } else {
       setPlayerTurn(true);
+    }
+  };
+
+  const minimax = (board, depth, isMax, alpha, beta) => {
+    if (checkWinner(board, "O")) return 10 - depth;
+    if (checkWinner(board, "X")) return depth - 10;
+    if (checkDraw(board)) return 0;
+
+    if (isMax) {
+      let bestScore = -Infinity;
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell === "") {
+            board[i][j] = "O";
+            let score = minimax(board, depth + 1, false, alpha, beta);
+            board[i][j] = "";
+            bestScore = Math.max(score, bestScore);
+            alpha = Math.max(alpha, bestScore);
+            if (beta <= alpha) return;
+          }
+        });
+      });
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell === "") {
+            board[i][j] = "X";
+            let score = minimax(board, depth + 1, true, alpha, beta);
+            board[i][j] = "";
+            bestScore = Math.min(score, bestScore);
+            beta = Math.min(beta, bestScore);
+            if (beta <= alpha) return;
+          }
+        });
+      });
+      return bestScore;
     }
   };
 
@@ -94,35 +138,29 @@ const TicTacToe = () => {
 
   return (
     <div id="tictactoeContainer">
-      {showS ? (
-        <div className="letter-s">S</div> // Affichage de la lettre S après 5 victoires
-      ) : (
-        <>
-          <table>
-            <tbody>
-              {board.map((row, i) => (
-                <tr key={i}>
-                  {row.map((cell, j) => (
-                    <td
-                      key={j}
-                      onClick={() => handlePlayerMove(i, j)}
-                      className={cell === "X" ? "player-symbol" : cell === "O" ? "bot-symbol" : ""}
-                    >
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
+      <table>
+        <tbody>
+          {board.map((row, i) => (
+            <tr key={i}>
+              {row.map((cell, j) => (
+                <td
+                  key={j}
+                  onClick={() => handlePlayerMove(i, j)}
+                  className={cell === "X" ? "player-symbol" : cell === "O" ? "bot-symbol" : ""}
+                >
+                  {cell}
+                </td>
               ))}
-            </tbody>
-          </table>
-          <div id="tictactoe-scoreboard">
-            <span>Joueur : {scores.player}</span>
-            <span>Matchs nuls : {scores.draw}</span>
-            <span>Bot : {scores.bot}</span>
-          </div>
-          <p className="victory-message">Marquez 5 points pour atteindre la victoire !</p>
-        </>
-      )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div id="tictactoe-scoreboard">
+        <span>Joueur : {scores.player}</span>
+        <span>Matchs nuls : {scores.draw}</span>
+        <span>Bot : {scores.bot}</span>
+      </div>
+      <p className="victory-message">Marquez 5 points pour atteindre la victoire !</p>
     </div>
   );
 };
