@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 const BreakoutGame = () => {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const intervalIdRef = useRef(null);
@@ -13,6 +12,8 @@ const BreakoutGame = () => {
   const ballSpeedRef = useRef(0.7);
   const gameWonRef = useRef(false);
   const checkCollisionRef = useRef(true);
+  // Créer un compteur de briques détruites
+  const bricksDestroyedRef = useRef(0);
 
   // Game constants
   const BRICK_ROW_COUNT = 3;
@@ -21,6 +22,7 @@ const BreakoutGame = () => {
   const BRICK_HEIGHT = 20;
   const BRICK_PADDING = 10;
   const BRICK_OFFSET_TOP = 30;
+  const BRICKS_TO_WIN = 10; // Nombre de briques à détruire pour gagner
 
   // Game objects
   const ballRef = useRef({ x: 0, y: 0, dx: 2, dy: -2, radius: 10 });
@@ -34,6 +36,10 @@ const BreakoutGame = () => {
     // Setup event listeners
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
+    
+    // Ensure keyboard inputs are reset when component loads
+    leftPressedRef.current = false;
+    rightPressedRef.current = false;
     
     // Cleanup event listeners
     return () => {
@@ -85,6 +91,8 @@ const BreakoutGame = () => {
       }
     }
     bricksRef.current = bricks;
+    // Réinitialiser le compteur de briques détruites
+    bricksDestroyedRef.current = 0;
   };
 
   const drawBricks = () => {
@@ -163,25 +171,22 @@ const BreakoutGame = () => {
         ball.dy = -ball.dy;
         ball.dx = ballOffsetFromCenter / (paddle.width / 2);
       } else {
-        setGameOver(true);
+        // Game over - First stop the game
         clearInterval(intervalIdRef.current);
-        if (score > bestScore) {
-          setBestScore(score);
-        }
-        alert(`Partie terminée ! Score: ${score}`);
-        setScore(0);
+        
+        // Now set game over and reset elements
+        setGameOver(true);
         resetPaddle();
         resetBricks();
+        
       }
     }
     
     // Brick collision
-    let allBricksDestroyed = true;
     for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
       for (let r = 0; r < BRICK_ROW_COUNT; r++) {
         const brick = bricksRef.current[c][r];
         if (brick && brick.status === 1) {
-          allBricksDestroyed = false;
           if (
             ball.x > brick.x &&
             ball.x < brick.x + BRICK_WIDTH &&
@@ -190,26 +195,32 @@ const BreakoutGame = () => {
           ) {
             ball.dy = -ball.dy;
             brick.status = 0;
+            bricksDestroyedRef.current += 1; // Incrémenter le compteur de briques détruites
+            
             setScore(prevScore => {
               const newScore = prevScore + 1;
               ballSpeedRef.current += 0.15;
               return newScore;
             });
+            
+            // Vérifier si le joueur a atteint le nombre requis de briques détruites
+            if (bricksDestroyedRef.current >= BRICKS_TO_WIN) {
+              // Victory - First stop the game
+              clearInterval(intervalIdRef.current);
+              gameWonRef.current = true;
+              checkCollisionRef.current = false;
+              
+              // Show the alert with victory message
+              alert(`Bravo, vous avez gagné ! Voici la lettre à retenir : T`);
+              
+              // Now reset elements (after alert)
+              resetPaddle();
+              resetBricks();
+              setGameStarted(false);
+            }
           }
         }
       }
-    }
-    
-    if (allBricksDestroyed) {
-      gameWonRef.current = true;
-      checkCollisionRef.current = false;
-      clearInterval(intervalIdRef.current);
-      alert(`Bravo, vous avez gagné ! Score: ${score}`);
-      setBestScore(Math.max(bestScore, 15));
-      setScore(0);
-      resetPaddle();
-      resetBricks();
-      setGameStarted(false);
     }
   };
 
@@ -227,12 +238,16 @@ const BreakoutGame = () => {
     resetBall();
     resetPaddle();
     resetBricks();
-    setScore(0);
+    setScore(0); // Reset score when starting a new game
     setGameStarted(true);
     setGameOver(false);
     gameWonRef.current = false;
     checkCollisionRef.current = true;
     ballSpeedRef.current = 0.7;
+    
+    // Reset keyboard inputs to prevent stuck movement
+    leftPressedRef.current = false;
+    rightPressedRef.current = false;
     
     if (intervalIdRef.current) {
       clearInterval(intervalIdRef.current);
@@ -257,22 +272,24 @@ const BreakoutGame = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center relative w-96 mx-auto">
+    <div className="flex flex-col items-center justify-center relative w-96 mx-auto p-6 bg-gray-800 rounded-lg shadow-lg" >
       <canvas 
         ref={canvasRef} 
         width={500} 
         height={500} 
+        style={{backgroundColor: 'rgb(44,44,44)'}}
         className="border border-solid border-yellow-300 bg-gray-900"
       />
       <button 
         onClick={restartGame}
-        className="text-base py-2.5 px-4 bg-gray-800 text-white border-none cursor-pointer absolute hover:bg-gray-600"
+        className="text-base py-2.5 px-4 bg-yellow-500 text-gray-900 font-bold border-none cursor-pointer absolute hover:bg-yellow-400 rounded"
       >
         {gameStarted && !gameOver ? "Redémarrer" : "Jouer"}
       </button>
       <div className="flex justify-between w-full mt-4">
-        <div className="text-base">Score : {score}</div>
-        <div className="text-base text-gray-500">Meilleur Score : {bestScore}</div>
+        <div className="text-base text-white font-medium" style={{color: 'white'}}>Score : {gameStarted ? score : 0}</div>
+        <p className='victoryConditions' style={{color: 'white'}}>Détruisez 10 briques afin d'atteindre la victoire !</p>
+        <p className='inputIndicator' style={{color: 'white'}}>Jouez à l'aide de : flèche gauche / Droite</p>
       </div>
     </div>
   );
