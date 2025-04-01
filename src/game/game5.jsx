@@ -195,6 +195,22 @@ const TapeTaupe = () => {
       }}
     >
       
+      {/* Message au-dessus de la barre de progression */}
+      {(
+        <div
+          style={{
+            position: 'absolute',
+            top: '10%',
+            textAlign: 'center',
+            color: 'white',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+          }}
+        >
+          Cliquez sur les points blancs et survivez jusqu'à la fin
+        </div>
+      )}
+
       {/* Barre de progression */}
       <div
         style={{
@@ -247,34 +263,33 @@ const TapeTaupe = () => {
       </div>
       
       {/* Bouton de jeu */}
-      {!jeuActif && (
-        <div style={{ marginTop: '2rem' }}>
-          {victoire ? (
-            <div style={{
+      <div style={{ marginTop: '2rem' }}>
+        {victoire ? (
+          <div style={{
+            color: 'white',
+            fontSize: '1.5rem',
+            textAlign: 'center'
+          }}>
+            La dernière lettre est S !
+          </div>
+        ) : (
+          <button
+            style={{
+              fontSize: '1rem',
+              padding: '0.5rem 1.5rem',
+              backgroundColor: '#333',
               color: 'white',
-              fontSize: '1.5rem',
-              textAlign: 'center'
-            }}>
-              La dernière lettre est S !
-            </div>
-          ) : (
-            <button
-              style={{
-                fontSize: '1rem',
-                padding: '0.5rem 1.5rem',
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.25rem',
-                cursor: 'pointer'
-              }}
-              onClick={demarrerJeu}
-            >
-              Jouer
-            </button>
-          )}
-        </div>
-      )}
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              display: 'block',
+              visibility: jeuActif ? 'hidden' : 'visible',
+            }}
+            onClick={demarrerJeu}
+          >
+            Jouer
+          </button>
+        )}
+      </div>
     </div>
   );
 };
