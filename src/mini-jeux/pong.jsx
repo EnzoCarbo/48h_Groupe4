@@ -346,7 +346,7 @@ const PongGame = () => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Styles améliorés
+    // Styles améliorés with white background and softer text styles
     const styles = {
         container: {
             width: '37.5rem',
@@ -357,61 +357,61 @@ const PongGame = () => {
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: '"Roboto", "Helvetica Neue", sans-serif',
-            color: '#333',
-            background: 'linear-gradient(145deg, #f6f6f6, #ffffff)',
+            color: '#555',
+            background: 'rgb(90, 90, 90)',
             padding: '2rem',
             borderRadius: '1rem',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.07)',
         },
         gameArea: {
             width: '100%',
             height: '25rem',
             border: 'none',
-            backgroundColor: '#1a1a2e',
+            backgroundColor: '#2c3e50',
             position: 'relative',
             borderRadius: '0.5rem',
             overflow: 'hidden',
-            boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.5)',
+            boxShadow: 'inset 0 0 50px rgba(135, 135, 135, 0.3)',
             margin: '1.5rem 0',
         },
         paddleLeft: {
             position: 'absolute',
             width: '1rem',
             height: '4rem',
-            backgroundColor: '#4ee1a0',
+            backgroundColor: '#3498db',
             transition: 'all 75ms linear',
             borderRadius: '0.5rem',
             top: '168px',
             left: '10px',
-            boxShadow: '0 0 15px #4ee1a0',
+            boxShadow: '0 0 10px #3498db',
         },
         paddleRight: {
             position: 'absolute',
             width: '1rem',
             height: '4rem',
-            backgroundColor: '#ff6b6b',
+            backgroundColor: '#e74c3c',
             transition: 'all 75ms linear',
             borderRadius: '0.5rem',
             top: '168px',
             right: '10px',
-            boxShadow: '0 0 15px #ff6b6b',
+            boxShadow: '0 0 10px #e74c3c',
         },
         ball: {
             position: 'absolute',
             width: '1rem',
             height: '1rem',
-            backgroundColor: '#ffd369',
+            backgroundColor: '#f1c40f',
             borderRadius: '50%',
             top: '190px',
             left: '290px',
-            boxShadow: '0 0 20px rgba(255, 211, 105, 0.7)',
+            boxShadow: '0 0 15px rgba(241, 196, 15, 0.6)',
         },
         scoreboard: {
             textAlign: 'center',
-            fontSize: '2.5rem',
+            fontSize: '2.25rem',
             marginTop: '1rem',
-            fontWeight: 'bold',
-            color: '#333',
+            fontWeight: '600',
+            color: '#555',
             width: '100%',
             display: 'flex',
             justifyContent: 'center',
@@ -422,32 +422,33 @@ const PongGame = () => {
             display: 'inline-block',
             width: '3rem',
             height: '3.5rem',
-            backgroundColor: '#1a1a2e',
+            backgroundColor: '#2c3e50',
             color: '#fff',
             padding: '0.5rem',
             borderRadius: '0.5rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07)',
         },
         scoreColon: {
             fontSize: '2rem',
-            fontWeight: 'bold',
+            fontWeight: '500',
+            color: '#555',
         },
         restartButton: {
             padding: '0.75rem 2rem',
             fontSize: '1.1rem',
-            backgroundColor: '#1a1a2e',
+            backgroundColor: '#3498db',
             color: '#fff',
             border: 'none',
             cursor: 'pointer',
             borderRadius: '2rem',
-            fontWeight: 'bold',
+            fontWeight: '500',
             display: restartVisible ? 'block' : 'none',
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
             zIndex: 10,
-            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
             transition: 'all 0.3s ease',
         },
         statsContainer: {
@@ -458,7 +459,7 @@ const PongGame = () => {
             padding: '1rem 1.5rem',
             backgroundColor: 'rgba(240, 240, 240, 0.5)',
             borderRadius: '0.5rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)',
         },
         statBox: {
             display: 'flex',
@@ -467,17 +468,17 @@ const PongGame = () => {
             padding: '0.5rem 1rem',
             backgroundColor: '#fff',
             borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
         },
         statLabel: {
             fontSize: '0.9rem',
-            color: '#666',
+            color: '#777',
             marginBottom: '0.25rem',
         },
         statValue: {
             fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#1a1a2e',
+            fontWeight: '600',
+            color: '#2c3e50',
         },
         settings: {
             marginTop: '1.5rem',
@@ -490,7 +491,7 @@ const PongGame = () => {
             backgroundColor: 'rgba(240, 240, 240, 0.5)',
             borderRadius: '0.5rem',
             padding: '1rem',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.03)',
         },
         settingGroup: {
             display: 'flex',
@@ -498,9 +499,10 @@ const PongGame = () => {
             gap: '0.5rem',
         },
         settingLabel: {
-            fontSize: '0.9rem',
-            color: '#555',
+            fontSize: '1rem',
+            color: '#3498db',
             fontWeight: '500',
+            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
         },
         settingInput: {
             width: '3.5rem',
@@ -513,27 +515,27 @@ const PongGame = () => {
         },
         difficultyRange: {
             width: '8rem',
-            accentColor: '#1a1a2e',
+            accentColor: '#3498db',
         },
         difficultyValue: {
-            backgroundColor: '#1a1a2e',
+            backgroundColor: '#3498db',
             color: '#fff',
             padding: '0.2rem 0.5rem',
             borderRadius: '1rem',
             fontSize: '0.8rem',
-            fontWeight: 'bold',
+            fontWeight: '500',
             minWidth: '2.5rem',
             textAlign: 'center',
         },
         timer: {
             fontSize: '1.25rem',
             marginTop: '1rem',
-            color: timeRemaining < 10 ? '#ff6b6b' : '#1a1a2e',
-            fontWeight: timeRemaining < 10 ? 'bold' : '500',
+            color: timeRemaining < 10 ? '#e74c3c' : '#2c3e50',
+            fontWeight: timeRemaining < 10 ? '600' : '400',
             padding: '0.5rem 1.5rem',
             backgroundColor: '#fff',
             borderRadius: '2rem',
-            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
@@ -542,7 +544,7 @@ const PongGame = () => {
             display: 'inline-block',
             width: '0.75rem',
             height: '0.75rem',
-            backgroundColor: timeRemaining < 10 ? '#ff6b6b' : '#1a1a2e',
+            backgroundColor: timeRemaining < 10 ? '#e74c3c' : '#2c3e50',
             borderRadius: '50%',
             animation: timeRemaining < 10 ? 'pulsate 1s infinite' : 'none',
         },
@@ -552,12 +554,12 @@ const PongGame = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
             display: showPopup ? 'flex' : 'none',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 1000,
-            backdropFilter: 'blur(5px)',
+            backdropFilter: 'blur(3px)',
         },
         popupContent: {
             backgroundColor: '#fff',
@@ -568,22 +570,22 @@ const PongGame = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 15px 50px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 15px 50px rgba(0, 0, 0, 0.2)',
             transform: 'scale(1)',
             animation: 'popup-appear 0.3s ease-out',
         },
         popupLetter: {
             fontSize: '8rem',
-            fontWeight: 'bold',
-            color: '#ff6b6b',
+            fontWeight: '600',
+            color: '#e74c3c',
             marginBottom: '1rem',
-            textShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
+            textShadow: '0 0 20px rgba(231, 76, 60, 0.4)',
         },
         popupMessage: {
             fontSize: '1.5rem',
-            color: '#333',
+            color: '#555',
             marginBottom: '1.5rem',
-            fontWeight: '500',
+            fontWeight: '400',
         },
         popupClose: {
             position: 'absolute',
@@ -593,7 +595,7 @@ const PongGame = () => {
             backgroundColor: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: '#555',
+            color: '#777',
             transition: 'color 0.2s ease',
         },
         '@keyframes pulsate': {
@@ -639,19 +641,30 @@ const PongGame = () => {
             position: 'absolute',
             bottom: '10px',
             left: '10px',
-            color: '#4ee1a0',
+            color: '#3498db',
             fontSize: '0.9rem',
-            fontWeight: 'bold',
+            fontWeight: '500',
         },
         botLabel: {
             position: 'absolute',
             bottom: '10px',
             right: '10px',
-            color: '#ff6b6b',
+            color: '#e74c3c',
             fontSize: '0.9rem',
-            fontWeight: 'bold',
+            fontWeight: '500',
         }
     };
+
+    // Add a style for the document body
+    useEffect(() => {
+        // Set the background color of the body to white
+        document.body.style.backgroundColor = 'rgb(67, 67, 67)';
+
+        // Cleanup function to reset body style when component unmounts
+        return () => {
+            document.body.style.backgroundColor = '';
+        };
+    }, []);
 
     // Création des points de la ligne centrale
     const centerDots = [];
@@ -661,7 +674,7 @@ const PongGame = () => {
 
     return (
         <div style={styles.container} className="pong-game-container">
-            <h1 style={{ fontSize: '2rem', margin: '0 0 1.5rem', color: '#1a1a2e', textAlign: 'center' }}>
+            <h1 style={{ fontSize: '2rem', margin: '0 0 1.5rem', color: '#2c3e50', textAlign: 'center', fontWeight: '500' }}>
                 Pong Challenge
             </h1>
 
@@ -730,9 +743,9 @@ const PongGame = () => {
             </div>
 
             <div style={styles.scoreboard} className="pong-scoreboard">
-                <div style={{ ...styles.scoreValue, backgroundColor: '#4ee1a0', boxShadow: '0 0 10px rgba(78, 225, 160, 0.3)' }} id="pong-player-score">{scorePlayer}</div>
+                <div style={{ ...styles.scoreValue, backgroundColor: '#3498db', boxShadow: '0 0 10px rgba(52, 152, 219, 0.3)' }} id="pong-player-score">{scorePlayer}</div>
                 <span style={styles.scoreColon}>:</span>
-                <div style={{ ...styles.scoreValue, backgroundColor: '#ff6b6b', boxShadow: '0 0 10px rgba(255, 107, 107, 0.3)' }} id="pong-bot-score">{scoreBot}</div>
+                <div style={{ ...styles.scoreValue, backgroundColor: '#e74c3c', boxShadow: '0 0 10px rgba(231, 76, 60, 0.3)' }} id="pong-bot-score">{scoreBot}</div>
             </div>
 
             <div style={styles.statsContainer}>
