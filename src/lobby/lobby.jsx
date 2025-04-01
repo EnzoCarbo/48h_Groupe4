@@ -5,6 +5,7 @@ import "../style/lobby.css";
 import SnakeGame from "../mini-jeux/snake";
 import BreakoutGame from "../mini-jeux/bricks";
 import PongGame from "../mini-jeux/pong";
+import TicTacToe from "../mini-jeux/TicTacToe";
 
 export default function Lobby() {
   const [word, setWord] = useState("");
@@ -12,6 +13,7 @@ export default function Lobby() {
   const audioRef = useRef(null);
   const [jeu, setJeu] = useState("");
 
+  // Tentative pour le mot
   const handleSubmit = (event) => {
     event.preventDefault();
     if (word === "STARS") {
@@ -22,6 +24,7 @@ export default function Lobby() {
     }
   };
 
+  // Son de victoire
   const playWinSound = () => {
     if (audioRef.current) {
       audioRef.current.play().catch(error => {
@@ -30,16 +33,19 @@ export default function Lobby() {
     }
   };
 
+  // Fin d'animation victoire
   const SoundEnd = () => {
     setResult(false);
   };
 
+  // Id du jeu à ouvrir
   const openGame = (id) => {
     setJeu(id);
   };
 
+  // Instances des jeux
   const gameComponents = {
-    1: <div><p>Game 1 Content</p></div>,
+    1: <div><TicTacToe/></div>,
     2: <div><BreakoutGame/></div>,
     3: <div><SnakeGame /></div>,
     4: <div><PongGame/></div>,
@@ -49,16 +55,17 @@ export default function Lobby() {
   return (
     <div className="background-container">
       <main>
+        {/* Victoire */}
         {result && (
           <div className="result">
             <img src="/img/win.gif" alt="victoire" />
           </div>
         )}
+
+        {/* Form & menu */}
         <section className="center">
-          <p><strong>Consignes</strong></p>
-          <p>
-            5 Mini-jeux, 5 points, 5 lettres, réussissez et trouver toutes les lettres pour former le mot !
-          </p>
+            <p><strong>Consignes</strong></p>
+            <p>5 Mini-jeux, 5 points, 5 lettres, réussissez et trouver toutes les lettres pour former le mot !</p>
           <form onSubmit={handleSubmit}>
             <input
               type="text"
@@ -73,6 +80,7 @@ export default function Lobby() {
           <section className="game">
             {gameComponents[jeu]}
             </section>
+          {/* carte au centre */}
           <section className="card-container">
             {[...Array(5)].map((_, index) => (
               <div key={index} className="card">
@@ -85,6 +93,8 @@ export default function Lobby() {
             ))}
           </section>
         </section>
+        
+        {/* Son victoire */}
         <audio
           ref={audioRef}
           src={`${process.env.PUBLIC_URL}/mp3/winsound.mp3`}
