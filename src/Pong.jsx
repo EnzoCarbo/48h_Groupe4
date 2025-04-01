@@ -219,39 +219,81 @@ const PongGame = () => {
         }
     };
 
-    // Fonction pour mettre à jour la raquette du bot (avec erreurs délibérées)
+    // Fonction pour mettre à jour la raquette du bot (AMÉLIORÉE)
     const updateBotPaddle = () => {
-        // Calculer la vitesse du bot en fonction de la difficulté
-        const botPaddleSpeed = 14 * (botDifficulty / 100);
+        // Adapter la vitesse du bot en fonction de la difficulté
+        const botPaddleSpeed = 8 + (12 * (botDifficulty / 100));
 
-        // Augmenter le compteur d'erreurs
-        botMistakeRef.current += 1;
+        // Calculer l'erreur de prédiction (diminue avec la difficulté)
+        const errorMargin = 30 * (1 - (botDifficulty / 100));
 
-        // Le bot fait des erreurs à intervalles réguliers (selon la difficulté)
-        const errorThreshold = 101 - botDifficulty;
-        const makeMistake = (botMistakeRef.current % errorThreshold < 20) || Math.random() < (1 - botDifficulty / 100) * 0.3;
+        // Déterminer si le bot doit faire une erreur
+        // À faible difficulté, le bot fait plus d'erreurs
+        const errorFrequency = 100 - botDifficulty;
+        const shouldMakeMistake = Math.random() * 100 < errorFrequency;
 
-        if (makeMistake) {
-            // Le bot fait une erreur - mouvement aléatoire
+        if (shouldMakeMistake) {
+            // Le bot fait une erreur - mouvement semi-aléatoire ou retardé
             if (Math.random() < 0.5 && rightPaddlePosYRef.current > 0) {
-                rightPaddlePosYRef.current -= botPaddleSpeed;
+                // Mouvement aléatoire vers le haut
+                rightPaddlePosYRef.current -= botPaddleSpeed * (Math.random() * 0.7);
             } else if (rightPaddlePosYRef.current + 64 < 336) {
-                rightPaddlePosYRef.current += botPaddleSpeed;
+                // Mouvement aléatoire vers le bas
+                rightPaddlePosYRef.current += botPaddleSpeed * (Math.random() * 0.7);
             }
         } else {
-            // Le bot suit la balle normalement
-            const targetY = ballPosYRef.current - 32;
-            const reactionDelay = Math.random() * (100 - botDifficulty) / 100;
-            const currentY = rightPaddlePosYRef.current;
+            // Direction de la balle vers le bot?
+            const ballMovingTowardsBot = ballDirXRef.current > 0;
 
-            if (Math.abs(currentY - targetY) > 10) {
-                if (currentY > targetY + 20 && rightPaddlePosYRef.current > 0) {
-                    rightPaddlePosYRef.current -= botPaddleSpeed * (1 - reactionDelay);
-                } else if (currentY < targetY - 20 && rightPaddlePosYRef.current + 64 < 336) {
-                    rightPaddlePosYRef.current += botPaddleSpeed * (1 - reactionDelay);
+            // Si la balle vient vers le bot, il réagit plus vite selon la difficulté
+            if (ballMovingTowardsBot) {
+                // Calcul de l'anticipation (augmente avec la difficulté)
+                // Prédire où la balle va arriver
+                const ballTrajectory = ballPosYRef.current + (ballDirYRef.current * (580 - ballPosXRef.current) / (ballSpeedRef.current * ballDirXRef.current));
+
+                // Limiter la trajectoire à l'intérieur des limites du jeu
+                const adjustedTrajectory = Math.min(Math.max(ballTrajectory, 0), 380);
+
+                // Ajouter une erreur de prédiction en fonction de la difficulté
+                let targetY = adjustedTrajectory + (Math.random() * errorMargin * 2 - errorMargin);
+
+                // Ajuster la position cible pour le centre de la raquette
+                targetY -= 32; // Moitié de la hauteur de la raquette
+
+                // Limiter la cible dans les limites du jeu
+                targetY = Math.min(Math.max(targetY, 0), 336);
+
+                // Calculer la distance à parcourir
+                const distanceToTarget = targetY - rightPaddlePosYRef.current;
+
+                // Vitesse de réaction proportionnelle à la difficulté
+                const reactionSpeed = botPaddleSpeed * (0.5 + (botDifficulty / 200));
+
+                // Déplacer la raquette avec une vitesse proportionnelle à la distance et à la difficulté
+                if (Math.abs(distanceToTarget) > 5) {
+                    if (distanceToTarget > 0) {
+                        rightPaddlePosYRef.current += Math.min(reactionSpeed, distanceToTarget);
+                    } else {
+                        rightPaddlePosYRef.current += Math.max(-reactionSpeed, distanceToTarget);
+                    }
+                }
+            } else {
+                // Si la balle s'éloigne, retourner vers le centre avec une vitesse basée sur la difficulté
+                const centerPosition = 168; // La position centrale
+                const returnSpeed = botPaddleSpeed * 0.4 * (botDifficulty / 100);
+
+                if (Math.abs(rightPaddlePosYRef.current - centerPosition) > 20) {
+                    if (rightPaddlePosYRef.current > centerPosition) {
+                        rightPaddlePosYRef.current -= returnSpeed;
+                    } else {
+                        rightPaddlePosYRef.current += returnSpeed;
+                    }
                 }
             }
         }
+
+        // S'assurer que la raquette reste dans les limites
+        rightPaddlePosYRef.current = Math.max(0, Math.min(rightPaddlePosYRef.current, 336));
     };
 
     // Fonction pour arrêter le jeu
@@ -358,7 +400,7 @@ const PongGame = () => {
             justifyContent: 'center',
             fontFamily: '"Roboto", "Helvetica Neue", sans-serif',
             color: '#555',
-            background: '#ffffff',
+            background: 'rgb(90, 90, 90)',
             padding: '2rem',
             borderRadius: '1rem',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.07)',
@@ -371,7 +413,7 @@ const PongGame = () => {
             position: 'relative',
             borderRadius: '0.5rem',
             overflow: 'hidden',
-            boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.3)',
+            boxShadow: 'inset 0 0 50px rgba(135, 135, 135, 0.3)',
             margin: '1.5rem 0',
         },
         paddleLeft: {
@@ -499,9 +541,10 @@ const PongGame = () => {
             gap: '0.5rem',
         },
         settingLabel: {
-            fontSize: '0.9rem',
-            color: '#666',
-            fontWeight: '400',
+            fontSize: '1rem',
+            color: '#3498db',
+            fontWeight: '500',
+            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
         },
         settingInput: {
             width: '3.5rem',
@@ -657,7 +700,7 @@ const PongGame = () => {
     // Add a style for the document body
     useEffect(() => {
         // Set the background color of the body to white
-        document.body.style.backgroundColor = '#ffffff';
+        document.body.style.backgroundColor = 'rgb(67, 67, 67)';
 
         // Cleanup function to reset body style when component unmounts
         return () => {
