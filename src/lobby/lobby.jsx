@@ -65,10 +65,10 @@ export default function Lobby() {
         {/* Form & menu */}
         <section className="center">
             <p><strong>Consignes</strong></p>
-            <p>5 Mini-jeux, 5 points, 5 lettres, réussissez et trouver toutes les lettres pour former le mot !</p>
+            <p>5 Mini-jeux, 5 lettres, réussissez les et trouver toutes les lettres pour former le mot !</p>
           <form onSubmit={handleSubmit}>
             <input
-              type="text"
+              type="password"
               value={word}
               onChange={(e) => setWord(e.target.value.toUpperCase())}
               maxLength="5"
@@ -93,7 +93,7 @@ export default function Lobby() {
             ))}
           </section>
         </section>
-        
+
         {/* Son victoire */}
         <audio
           ref={audioRef}
