@@ -12,7 +12,7 @@ export default function Lobby() {
   const [word, setWord] = useState("");
   const [result, setResult] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.2); // Volume par défaut à 50%
+  const [volume, setVolume] = useState(0.2);
   const audioRef = useRef(null);
   const audioRefBack = useRef(null);
   const [jeu, setJeu] = useState("");
@@ -61,11 +61,11 @@ export default function Lobby() {
 
   // Instances des jeux
   const gameComponents = {
-    1: <div><TicTacToe /></div>,
+    1: <div><TapeTaupe /></div>,
     2: <div><BreakoutGame /></div>,
     3: <div><SnakeGame /></div>,
     4: <div><PongGame /></div>,
-    5: <div><TapeTaupe /></div>,
+    5: <div><TicTacToe /></div>,
   };
 
   useEffect(() => {
