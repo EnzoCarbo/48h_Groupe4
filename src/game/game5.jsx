@@ -4,12 +4,10 @@ const TapeTaupe = () => {
   // États du jeu
   const [jeuActif, setJeuActif] = useState(false);
   const [taupesActives, setTaupesActives] = useState([]); // Index des taupes actives
-  const [animationFinActive, setAnimationFinActive] = useState(false);
-  const [enAnimationFin, setEnAnimationFin] = useState(false);
   const [victoire, setVictoire] = useState(false); // État de victoire
   const [animationRougeActive, setAnimationRougeActive] = useState(false); // Animation rouge (échec)
   const [animationVerteActive, setAnimationVerteActive] = useState(false); // Animation verte (succès)
-  const [dureeJeu, setDureeJeu] = useState(15); // Durée du jeu en secondes
+  const [dureeJeu] = useState(15); // Durée du jeu en secondes
   const [tempsRestant, setTempsRestant] = useState(dureeJeu);
 
   // Références
