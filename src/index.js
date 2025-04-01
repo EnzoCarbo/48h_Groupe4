@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import TicTacToe from './TicTacToe'; // Import du composant TicTacToe
 import reportWebVitals from './reportWebVitals';
-import App from './App.css';
+import "./TicTacToe.css";
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

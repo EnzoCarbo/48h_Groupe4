@@ -1,0 +1,42 @@
+@media screen and (max-width: 992px) {
+    #tictactoeContainer {
+      display: none !important;
+    }
+  }
+  
+  #tictactoeContainer {
+    width: 28.125rem;
+    margin: 0 auto;
+  }
+  
+  table {
+    border-collapse: collapse;
+    margin: 1.25rem auto;
+    background-color: #928e8e;
+  }
+  
+  td {
+    width: 9.375rem;
+    height: 9.375rem;
+    text-align: center;
+    font-size: 4.5rem;
+    border: 1px solid #333;
+    cursor: pointer;
+  }
+  
+  #tictactoe-scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  #tictactoe-scoreboard span {
+    margin-right: 0.625rem;
+  }
+  
+  .player-symbol, .bot-symbol {
+    color: #fdd33c;
+  }
+  
+  
