@@ -42,13 +42,46 @@ const TicTacToe = () => {
   };
 
   const handleBotMove = () => {
+    // 30% de chance que le bot joue un coup aléatoire
+    if (Math.random() < 0.3) {
+      const emptyCells = [];
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell === "") emptyCells.push({ row: i, col: j });
+        });
+      });
+
+      if (emptyCells.length > 0) {
+        const randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const { row, col } = randomMove;
+        const newBoard = board.map((r, i) =>
+          r.map((cell, j) => (i === row && j === col ? "O" : cell))
+        );
+        setBoard(newBoard);
+
+        if (checkWinner(newBoard, "O")) {
+          setTimeout(() => alert("Le bot a gagné !"), 100);
+          setScores((prev) => ({ ...prev, bot: prev.bot + 1 }));
+          resetGame();
+        } else if (checkDraw(newBoard)) {
+          setTimeout(() => alert("Match nul !"), 100);
+          setScores((prev) => ({ ...prev, draw: prev.draw + 1 }));
+          resetGame();
+        } else {
+          setPlayerTurn(true);
+        }
+        return;
+      }
+    }
+
+    // Sinon, le bot joue de manière optimale avec Minimax
     let bestScore = -Infinity;
     let bestMove;
 
     board.forEach((row, i) => {
       row.forEach((cell, j) => {
         if (cell === "") {
-          let tempBoard = board.map(row => [...row]);
+          let tempBoard = board.map((row) => [...row]);
           tempBoard[i][j] = "O";
           let score = minimax(tempBoard, 0, false, -Infinity, Infinity);
           if (score > bestScore) {
@@ -61,16 +94,18 @@ const TicTacToe = () => {
 
     if (!bestMove) return;
     const { row, col } = bestMove;
-    const newBoard = board.map((r, i) => r.map((cell, j) => (i === row && j === col ? "O" : cell)));
+    const newBoard = board.map((r, i) =>
+      r.map((cell, j) => (i === row && j === col ? "O" : cell))
+    );
     setBoard(newBoard);
 
     if (checkWinner(newBoard, "O")) {
       setTimeout(() => alert("Le bot a gagné !"), 100);
-      setScores(prev => ({ ...prev, bot: prev.bot + 1 }));
+      setScores((prev) => ({ ...prev, bot: prev.bot + 1 }));
       resetGame();
     } else if (checkDraw(newBoard)) {
       setTimeout(() => alert("Match nul !"), 100);
-      setScores(prev => ({ ...prev, draw: prev.draw + 1 }));
+      setScores((prev) => ({ ...prev, draw: prev.draw + 1 }));
       resetGame();
     } else {
       setPlayerTurn(true);
